@@ -1,0 +1,35 @@
+				Bài 2
+1. khoảng cách "\t" . vd: a=1 b=1
+2. khoảng trống trước kí tự để căng lề phải setw(10), nếu độ rộng thiết lập nhỏ hơn số cần hiển thị thì setw không tác dụng 
+3. độ chính xác setprecision(5)
+
+4. cố định độ chính xác fixed;
+		     setprecision(5)
+
+5. độ chính xác cout.precision(8)
+	cout << "default:\n"; -> giữ nguyên 
+	cout << "fixed:\n"; -> cố định độ chính xác là 8, in ra đúng 8 chữ số
+	cout << "scientific:\n"; -> độ chính xác dạng khoa học (lũy thừa)
+6.hàm(Arg_Nam: tham số)
+ . đối tham chiếu
+DataType Func_Name(DataType & Arg_Nam,...);
+hoạt động như biến con trỏ, các đối thực sự trong lời gọi hàm tương ứng vs đối tham chiếu phải là các biến cùng kiểu với kiểu của đối
+ .đối mặc định
+DataType Func_Name(DataType Arg_Nam1, DataType Arg_Nam2 = value2, ...);
+nếu truyền thì gt cho tham số thì nó sẽ nhận gt tham số truyền vào, ngược lại sẽ nhận gt mặt định ban đầu
+ .nạp chồng hàm
+cho phép định nghĩa hàm đã có. Tức là cho phép nhiều hàm trùng tên 
+lưu ý: các hàm phải khác nhau về sl đối hoặc kiểu của đối
+vd int tong(int a, int b){return a+b;}
+   float tong(int a, float b){return a+b;}
+ .hàm mẫu
+được xây dựng như 1 hình mẫu để thực hiện chức năng nào đó của các đối vào chưa được xác định
+khai báo 
+	template<class DataType,...>
+	DataType Func_Name(DataType Arg_Name1,...)
+	{
+	   các câu lệnh;
+	}
+
+
+

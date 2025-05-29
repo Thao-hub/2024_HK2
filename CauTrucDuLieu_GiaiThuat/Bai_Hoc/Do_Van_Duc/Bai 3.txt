@@ -1,0 +1,65 @@
+						Bai 3
+2. lớp
+class class_name
+{
+	access_specifier_1:
+		member1;
+	access_specifier_2:
+		member2;
+	...
+
+};
+
+3. Cài đặt các phương thức
+
+Phương thức bên ngoài lớp
+DataType class_Name::Func_Name([Argument_list])
+{
+	Các câu lệnh;
+}
+
+VD void Diem::Nhap(char ten)
+{
+	cout<<"Nhap toa do diem "<<ten<<":";
+	cin>>x>>y;
+}
+
+4. Truy cập đến các thành phần của lớp
+khai báo classname objname
+truy nhập 
+	objname.Propety //truy cập thuộc tính của lớp
+	objname.Method([arg])//truy cập các phương thức
+CRectangle rect;
+rect.width = 3;
+rect.heigh = 4;
+rect.set_value (3, 4);
+cout<<"area: "<<rect.area();
+
+
+khai báo classname*pointername;
+truy nhập
+	pointername->properties
+	pointername->method([arg])
+lưu ý trước khi sd con trỏ cần được gán địa chỉ của 1 đối tượng đã có hoặc cấp phát bộ nhớ cho nó
+CRectangle *rect2;
+rect2 = new Crectangle();
+rect2->width =3;
+rect2->set_value(3, 4);
+5. cấu tử - hủy tử
+ * cấu tử là phương thức đặc biệt của lớp nó được gọi khi một đối tượng mới được tạo ra, tác dụng gán gt cho các thuộc tính của đt
+trong 1 lớp có thể chồng nhiều đt
+cài đặt cấu tử
+class class_Name
+{
+	private:
+		khai báo các thuộc tính, phương thức riêng;
+	public:
+		class_Name();//cấu tử không đối
+		class_Name(arg_list);//cấu tử có đối
+		~class_Name();//hủy tử
+		khai báo các thuộc tính và phương thức công khai	
+};
+ * hủy tử(hàm hủy)
+là phương thức đặc biệt trong lớp nó được tự động gọi tới khi cần hủy bỏ đối tượng khỏi bộ nhớ
+trog lớp chỉ xây dựng hủy tử nếu nó có thuộc tính con trỏ và chỉ đc xây dựng 1 hủy tử
+cài đặt hủy tử: giải phóng bộ nhớ đã cấp phát cho các thuộc tính con trỏ

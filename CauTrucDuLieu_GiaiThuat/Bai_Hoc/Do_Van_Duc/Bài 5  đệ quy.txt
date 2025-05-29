@@ -1,0 +1,8 @@
+				Bài 5 : đệ quy
+1. Đệ quy trực tiếp: là phương pháp đệ quy có 1 hàm, trong hàm có lời gọi tới chính nó
+	*đệ quy tuyến tính: có lời gọi đệ quy 1 lần
+
+	*đệ quy nhị phân: có lời gọi đệ quy 2 lần
+
+	*đệ quy lồng
+2. Đệ quy gián tiếp: là phương pháp đệ quy có 2 hàm, giả sử có hàm X và hàm Y. Hàm X có lời gọi đến hàm Y và hàm Y có lời gọi đến hàm X
