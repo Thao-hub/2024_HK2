@@ -1,0 +1,66 @@
+CREATE DATABASE QL_Cua_Hang_Phu_Kien_Thu_Cung;
+GO
+
+USE QL_Cua_Hang_Phu_Kien_Thu_Cung;
+GO
+
+-- Bảng người dùng (Admin, Nhân viên)
+CREATE TABLE NguoiDung (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Ten NVARCHAR(50) NOT NULL UNIQUE,
+    Email NVARCHAR(50) UNIQUE NOT NULL,
+    MatKhau NVARCHAR(100) NOT NULL,
+    SoLienHe VARCHAR(12),
+    VaiTro NVARCHAR(20) CHECK (VaiTro IN ('Admin')) Default 'Admin',
+    TrangThai BIT DEFAULT 1
+);
+
+-- Bảng khách hàng
+CREATE TABLE KhachHang (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    NguoiDungID INT UNIQUE FOREIGN KEY REFERENCES NguoiDung(ID),
+
+    DiaChi NVARCHAR(255),
+    GioiTinh NVARCHAR(10) CHECK (GioiTinh IN (N'Nam', N'Nữ', N'Khác')),
+    TrangThai BIT DEFAULT 1
+);
+
+-- Bảng danh mục sản phẩm (Quần áo, đồ chơi, thức ăn)
+CREATE TABLE DanhMuc (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Ten NVARCHAR(50) CHECK (PhuKien IN ('Quần áo', 'Đồ chơi')) Default 'Quần áo',
+    TrangThai BIT DEFAULT 1
+);
+
+-- Bảng sản phẩm (Phụ kiện thú cưng)
+CREATE TABLE PhuKienThuCung (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    TenSanPham NVARCHAR(50) NOT NULL,
+    ThuongHieu NVARCHAR(50),
+    Gia DECIMAL(18,2) NOT NULL,
+    SoLuong INT NOT NULL,
+    MoTaNgan NVARCHAR(200),
+    MoTaChiTiet NVARCHAR(MAX),
+    TrangThai BIT DEFAULT 1,
+    DanhMucID INT FOREIGN KEY REFERENCES DanhMuc(ID)
+);
+
+-- Bảng đơn hàng
+CREATE TABLE DonHang (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    KhachHangID INT FOREIGN KEY REFERENCES KhachHang(ID),
+    NguoiDungID INT FOREIGN KEY REFERENCES NguoiDung(ID), -- Nhân viên xử lý đơn
+    NgayDat DATETIME DEFAULT GETDATE(),
+    TongTien DECIMAL(18,2) NOT NULL,
+    TrangThai NVARCHAR(50) CHECK (TrangThai IN ('ChoXacNhan', 'DangXuLy', 'DaGiao', 'DaHuy')),
+    ThanhToan BIT DEFAULT 0
+);
+
+-- Bảng chi tiết đơn hàng
+CREATE TABLE ChiTietDonHang (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    DonHangID INT FOREIGN KEY REFERENCES DonHang(ID),
+    SanPhamID INT FOREIGN KEY REFERENCES PhuKienThuCung(ID),
+    SoLuong INT NOT NULL,
+    Gia DECIMAL(18,2) NOT NULL
+);

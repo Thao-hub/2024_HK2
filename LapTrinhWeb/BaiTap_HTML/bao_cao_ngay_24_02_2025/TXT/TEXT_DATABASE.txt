@@ -1,0 +1,196 @@
+CREATE DATABASE QL_Cua_Hang_Phu_Kien_Thu_Cung;
+USE QL_Cua_Hang_Phu_Kien_Thu_Cung;
+
+-- Bảng Người Dùng (Quản lý tài khoản và vai trò)
+CREATE TABLE NguoiDung (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Ten NVARCHAR(50) NOT NULL,
+    SoLienHe VARCHAR(12),
+    Email NVARCHAR(50) UNIQUE NOT NULL,
+    MatKhau NVARCHAR(100) NOT NULL,
+    VaiTro NVARCHAR(20) CHECK (VaiTro IN (N'Admin', N'Nhân viên', N'Khách hàng')),
+    TrangThai BIT DEFAULT 1 -- 1: Hoạt động, 0: Không hoạt động
+);
+
+-- Bảng Khách Hàng (Gắn với tài khoản)
+CREATE TABLE KhachHang (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    NguoiDungID INT UNIQUE FOREIGN KEY REFERENCES NguoiDung(ID) ON DELETE CASCADE,
+    DiaChi NVARCHAR(100),
+    GioiTinh NVARCHAR(10) CHECK (GioiTinh IN (N'Nam', N'Nữ', N'Khác')),
+    TrangThai BIT DEFAULT 1 -- 1: Hoạt động, 0: Không hoạt động
+);
+
+-- Bảng Danh Mục (Danh mục sản phẩm)
+CREATE TABLE DanhMuc (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Ten NVARCHAR(50) NOT NULL,
+    ThuongHieu NVARCHAR(50),
+    HinhAnh NVARCHAR(255),
+    CapNhatVao DATETIME DEFAULT GETDATE(),
+    TaoVao DATETIME DEFAULT GETDATE(),
+    TrangThai BIT DEFAULT 1
+);
+
+-- Bảng Đơn Vị (Đơn vị sản phẩm)
+CREATE TABLE DonVi (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    SoThuTu INT NOT NULL,
+    Ten NVARCHAR(50) NOT NULL,
+    CapNhatLuc DATETIME DEFAULT GETDATE(),
+    TrangThai BIT DEFAULT 1
+);
+
+-- Bảng Sản Phẩm (Phụ kiện thú cưng)
+CREATE TABLE SanPham (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    TenSanPham NVARCHAR(50) NOT NULL,
+    ThuongHieu NVARCHAR(50),
+    Gia DECIMAL(18,2) NOT NULL,
+    SoLuong INT NOT NULL CHECK (SoLuong >= 0),
+    MoTaNgan NVARCHAR(200),
+    MoTaChiTiet NVARCHAR(MAX),
+    NoiBat BIT DEFAULT 0, -- 0: Không, 1: Có
+    TrangThai BIT DEFAULT 1,
+    DonViID INT FOREIGN KEY REFERENCES DonVi(ID),
+    DanhMucID INT FOREIGN KEY REFERENCES DanhMuc(ID)
+);
+
+-- Bảng Đơn Hàng (Khách hàng đặt hàng)
+CREATE TABLE DonHang (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    KhachHangID INT FOREIGN KEY REFERENCES KhachHang(ID) ON DELETE CASCADE,
+    NgayDat DATETIME DEFAULT GETDATE(),
+    TongTien DECIMAL(18,2) NOT NULL CHECK (TongTien >= 0),
+    TrangThai NVARCHAR(50) CHECK (TrangThai IN (N'Đã Đặt', N'Chờ Xử Lý', N'Đang Xử Lý', N'Đã Giao', N'Đã Hủy')),
+    ThanhToan BIT DEFAULT 0 -- 0: Chưa thanh toán, 1: Đã thanh toán
+);
+
+-- Bảng Chi Tiết Đơn Hàng (Sản phẩm trong đơn hàng)
+CREATE TABLE ChiTietDonHang (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    DonHangID INT FOREIGN KEY REFERENCES DonHang(ID) ON DELETE CASCADE,
+    SanPhamID INT FOREIGN KEY REFERENCES SanPham(ID),
+    SoLuong INT NOT NULL CHECK (SoLuong > 0),
+    Gia DECIMAL(18,2) NOT NULL CHECK (Gia >= 0)
+);
+
+1. Dùng VIEW để phân quyền dữ liệu
+🔹 View hiển thị sản phẩm chỉ cho khách hàng
+
+CREATE VIEW v_KhachHang_XemSanPham AS
+SELECT ID, TenSanPham, Gia, SoLuong, MoTaNgan
+FROM SanPham
+WHERE TrangThai = 1; -- Chỉ hiển thị sản phẩm còn hoạt động
+
+✅ Khách hàng chỉ có thể xem sản phẩm đang hoạt động.
+
+🔹 View hiển thị đơn hàng cho nhân viên
+
+CREATE VIEW v_NhanVien_XemDonHang AS
+SELECT ID, KhachHangID, NgayDat, TongTien, TrangThai
+FROM DonHang
+WHERE TrangThai IN ('Chờ Xử Lý', 'Đang Xử Lý'); 
+
+✅ Nhân viên chỉ thấy đơn hàng chưa hoàn thành.
+
+🔹 View hiển thị đơn hàng cho khách hàng (chỉ thấy đơn của mình)
+
+CREATE VIEW v_KhachHang_XemDonHang AS
+SELECT ID, NgayDat, TongTien, TrangThai
+FROM DonHang
+WHERE KhachHangID = (SELECT ID FROM KhachHang WHERE SoLienHe = SYSTEM_USER);
+
+✅ Khách hàng chỉ thấy đơn hàng của chính họ.
+
+---
+
+2. Dùng STORED PROCEDURE để kiểm soát thao tác
+Thay vì kiểm tra bảng `QuyenTruyCap`, chúng ta sẽ kiểm tra trực tiếp trong bảng `NguoiDung`.
+
+🔹 Stored Procedure kiểm tra vai trò người dùng
+
+CREATE PROCEDURE sp_KiemTraVaiTro
+    @NguoiDungID INT,
+    @VaiTro NVARCHAR(50) OUTPUT
+AS
+BEGIN
+    SELECT @VaiTro = VaiTro FROM NguoiDung WHERE ID = @NguoiDungID;
+END;
+
+🔹 Cách sử dụng:  
+
+DECLARE @VaiTro NVARCHAR(50);
+EXEC sp_KiemTraVaiTro @NguoiDungID = 1, @VaiTro = @VaiTro OUTPUT;
+PRINT @VaiTro;
+
+
+🔹 Stored Procedure thêm sản phẩm (Chỉ Admin hoặc Nhân viên mới được thêm)
+
+CREATE PROCEDURE sp_ThemSanPham
+    @NguoiDungID INT,
+    @TenSanPham NVARCHAR(50),
+    @Gia DECIMAL(18,2),
+    @SoLuong INT,
+    @MoTaNgan NVARCHAR(200),
+    @MoTaChiTiet NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @VaiTro NVARCHAR(50);
+    EXEC sp_KiemTraVaiTro @NguoiDungID, @VaiTro OUTPUT;
+
+    IF @VaiTro IN (N'Admin')
+    BEGIN
+        INSERT INTO SanPham (TenSanPham, Gia, SoLuong, MoTaNgan, MoTaChiTiet, TrangThai)
+        VALUES (@TenSanPham, @Gia, @SoLuong, @MoTaNgan, @MoTaChiTiet, 1);
+        PRINT 'Thêm sản phẩm thành công';
+    END
+    ELSE
+    BEGIN
+        PRINT 'Bạn không có quyền thêm sản phẩm';
+    END
+END;
+```
+✅ Admin & Nhân viên mới có thể thêm sản phẩm.  
+
+---
+
+🔹 Stored Procedure đặt hàng (Chỉ khách hàng mới được đặt hàng)
+
+CREATE PROCEDURE sp_DatHang
+    @KhachHangID INT,
+    @SanPhamID INT,
+    @SoLuong INT
+AS
+BEGIN
+    DECLARE @VaiTro NVARCHAR(50);
+    EXEC sp_KiemTraVaiTro @KhachHangID, @VaiTro OUTPUT;
+
+    IF @VaiTro = N'Khách hàng'
+    BEGIN
+        DECLARE @Gia DECIMAL(18,2);
+        SELECT @Gia = Gia FROM SanPham WHERE ID = @SanPhamID;
+
+        INSERT INTO DonHang (KhachHangID, NgayDat, TongTien, TrangThai, ThanhToan)
+        VALUES (@KhachHangID, GETDATE(), @Gia * @SoLuong, N'Đã Đặt', 0);
+        
+        DECLARE @DonHangID INT = SCOPE_IDENTITY();
+
+        INSERT INTO ChiTietDonHang (DonHangID, SanPhamID, SoLuong, Gia)
+        VALUES (@DonHangID, @SanPhamID, @SoLuong, @Gia);
+
+        PRINT 'Đặt hàng thành công';
+    END
+    ELSE
+    BEGIN
+        PRINT 'Bạn không có quyền đặt hàng';
+    END
+END;
+
+✅ Chỉ khách hàng mới có thể đặt hàng. 
+
+---
+
+🎯 Kết luận
+VIEW - Giới hạn dữ liệu hiển thị cho từng vai trò 
+STORED PROCEDURE - Kiểm tra quyền trước khi thực hiện hành động

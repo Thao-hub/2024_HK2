@@ -1,0 +1,18 @@
+trạng thái bằng 0 thì không view danh sách
+cài malog
+khái niệm 
+tên 
+tự luận 
+câu hỏi có ví dụ
+viết chương trình theo mô hình yêu cầu
+
+làm nhóm
+đưa ra sơ đồ lớp chạy được các lớp viết bằng java chạy đc
+thực hiện phương thức
+
+tìm kiếm xác định yêu cầu đề bài
+nội dung lí thuyết nào để làm, kĩ năng kiến thức
+cần các bước
+thầy hỏi đánh giá giữa kì: dùng gì? lý thuyết gì? mục tiêu? tại sao?
+
+
